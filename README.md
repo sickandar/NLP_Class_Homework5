@@ -2,6 +2,4 @@
 Assignment for NLP Class Homework 5 at Southern Methodist University.
 
 Credits:
-Sickandar Akhthar
-Brady Heinig
-Griffin Thoreson
+Sickandar Akhthar | Brady Heinig | Griffin Thoreson
