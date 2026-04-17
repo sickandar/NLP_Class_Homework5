@@ -1066,14 +1066,19 @@ server <- function(input, output, session) {
     companion_keywords <- c("companion", "grow together", "grow well together", "plant with", "what to plant")
     is_companion_query <- any(sapply(companion_keywords, function(k) grepl(k, tolower(user_msg), fixed = TRUE)))
     insight_delay <- if (is_companion_query) 5 else 1.5
-    
+
     later::later(function() {
       msg_lower <- tolower(user_msg)
       plant_mentioned <- any(sapply(valid_plants, function(p) grepl(p, msg_lower, fixed = TRUE)))
       sqft_mentioned <- grepl("\\d+\\s*(square feet|square foot|sq ft|sqft)", msg_lower)
       zip_mentioned <- grepl("\\b\\d{5}\\b", user_msg)
-      
+
       if (plant_mentioned || sqft_mentioned || zip_mentioned) {
+        mentioned_plants <- Filter(function(p) grepl(p, msg_lower, fixed = TRUE), valid_plants)
+        companion_empty <- isolate(is.null(rv$companion_input) || length(rv$companion_input) == 0)
+        if (length(mentioned_plants) > 0 && companion_empty) {
+          analyze_companions(as.list(mentioned_plants))
+        }
         live_snapshot <- state_snapshot
         live_snapshot$companion_input <- isolate(if (is.null(rv$companion_input) || length(rv$companion_input) == 0) "None" else paste(rv$companion_input, collapse = ", "))
         live_snapshot$companion_conflicts <- isolate(if (is.null(rv$companion_conflicts) || length(rv$companion_conflicts) == 0) "None" else paste(rv$companion_conflicts, collapse = ", "))
