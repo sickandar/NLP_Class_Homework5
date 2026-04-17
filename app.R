@@ -18,12 +18,21 @@ zip_hardiness <- read_csv("zip_hardiness.csv", show_col_types = FALSE) |>
   clean_names() |>
   mutate(zip = str_pad(as.character(.data$zip), width = 5, side = "left", pad = "0"))
 
+valid_plants <- c(
+  "tomato","basil","pothos","snake plant","rose","lavender",
+  "strawberry","blueberry","apple","fig","watermelon","grape",
+  "lettuce","spinach","pepper","cucumber","zucchini","broccoli",
+  "marigold","sunflower","zinnia","petunia","daisy","coneflower"
+)
+
 zip_data <- zip_locations |>
   left_join(zip_hardiness, by = "zip")
 
 plant_care_lookup <- function(plant) {
   plant <- tolower(trimws(plant))
-  
+  if (!(plant %in% valid_plants)) {
+    return("This plant is not in the database.")
+  }
   care_db <- list(
     tomato = paste(
       "Tomatoes prefer full sun, warm weather, and evenly moist soil.",
@@ -291,7 +300,7 @@ ui <- page_fillable(
           card_header("How the Shiny App was Designed and the LLM/RAG was setup"),
           card_body(
             h3("Credits"),
-            p(("Authors: "), "Sickandar Akhthar | Brady Heinig | Griffin Thoreson"),
+            p(("Authors: "), ""),
             p("STAT 6395 - Homework 5"),
             h3("Design Prompt used with Shiny Assistant"),
             h5("The following prompts were used to generate the Shiny Dashboard app (or shell)."),
@@ -303,7 +312,7 @@ ui <- page_fillable(
             p("The background color needs to be light green"),
             h3("Gardening Assistant System Prompt"),
             p("This code sets up the chatbot by connecting to the Claude Haiku model."),
-            p("It also limits the response length and defines a system prompt that tells the assistant how to behave, including keeping answers short and using the app’s tools when needed."),
+            p("It also limits the response length and defines a system prompt that tells the assistant how to behave, including keeping answers short and using the app's tools when needed."),
             tags$pre(
               "You are an experienced gardener helping home gardeners and beginners.
 Keep answers under 120 words and be extremely brief.
@@ -412,6 +421,9 @@ server <- function(input, output, session) {
   
   check_winter_survival <- function(plant, location_input = "") {
     plant <- tolower(trimws(plant))
+    if (!(plant %in% valid_plants)) {
+      return("This plant is not in the database.")
+    }
     location_input <- trimws(location_input)
     digits_only <- gsub("[^0-9]", "", location_input)
     
@@ -671,7 +683,9 @@ server <- function(input, output, session) {
   calculate_spacing <- function(square_footage, plant) {
     sqft <- as.numeric(gsub("[^0-9.]", "", square_footage))
     plant <- tolower(trimws(plant))
-    
+    if (!(plant %in% valid_plants)) {
+      return("This plant is not in the database.")
+    }
     spacing_db <- list(
       tomato = 4,
       basil = 1,
@@ -741,7 +755,8 @@ server <- function(input, output, session) {
     )
     
     plants <- tolower(trimws(unlist(plant_list)))
-    known_plants <- plants[plants %in% names(companion_data)]
+    plants <- plants[plants %in% valid_plants]
+    known_plants <- plants
     
     rv$companion_input <- known_plants
     rv$companion_conflicts <- character(0)
@@ -1048,9 +1063,24 @@ server <- function(input, output, session) {
       }
     )
     
+    companion_keywords <- c("companion", "grow together", "grow well together", "plant with", "what to plant")
+    is_companion_query <- any(sapply(companion_keywords, function(k) grepl(k, tolower(user_msg), fixed = TRUE)))
+    insight_delay <- if (is_companion_query) 5 else 1.5
+    
     later::later(function() {
-      build_dashboard_insights(user_msg, state_snapshot)
-    }, delay = 1.5)
+      msg_lower <- tolower(user_msg)
+      plant_mentioned <- any(sapply(valid_plants, function(p) grepl(p, msg_lower, fixed = TRUE)))
+      sqft_mentioned <- grepl("\\d+\\s*(square feet|square foot|sq ft|sqft)", msg_lower)
+      zip_mentioned <- grepl("\\b\\d{5}\\b", user_msg)
+      
+      if (plant_mentioned || sqft_mentioned || zip_mentioned) {
+        live_snapshot <- state_snapshot
+        live_snapshot$companion_input <- isolate(if (is.null(rv$companion_input) || length(rv$companion_input) == 0) "None" else paste(rv$companion_input, collapse = ", "))
+        live_snapshot$companion_conflicts <- isolate(if (is.null(rv$companion_conflicts) || length(rv$companion_conflicts) == 0) "None" else paste(rv$companion_conflicts, collapse = ", "))
+        live_snapshot$companion_recommendations <- isolate(if (is.null(rv$companion_recommendations) || length(rv$companion_recommendations) == 0) "None" else paste(rv$companion_recommendations, collapse = ", "))
+        build_dashboard_insights(user_msg, live_snapshot)
+      }
+    }, delay = insight_delay)
   })
 }
 
