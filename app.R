@@ -8,6 +8,7 @@ library(stringr)
 library(janitor)
 library(leaflet)
 library(bsicons)
+library(later)
 
 zip_locations <- read_csv("zip_locations.csv", show_col_types = FALSE) |>
   clean_names() |>
@@ -55,7 +56,6 @@ plant_care_lookup <- function(plant) {
       "Do not overwater.",
       "It performs best in drier conditions than many garden plants."
     ),
-    
     strawberry = paste(
       "Strawberries prefer full sun and rich, well-drained soil.",
       "Keep the soil evenly moist, especially during fruiting.",
@@ -86,7 +86,6 @@ plant_care_lookup <- function(plant) {
       "Water regularly during establishment.",
       "Prune heavily each year for healthy fruit production."
     ),
-    
     lettuce = paste(
       "Lettuce prefers cool weather and moist, fertile soil.",
       "Provide full sun in cool weather or partial shade in heat.",
@@ -117,7 +116,6 @@ plant_care_lookup <- function(plant) {
       "Grow it in full sun.",
       "Consistent watering helps prevent stress and poor heads."
     ),
-    
     marigold = paste(
       "Marigolds prefer full sun and well-drained soil.",
       "They are fairly drought tolerant once established.",
@@ -150,7 +148,6 @@ plant_care_lookup <- function(plant) {
     )
   )
   
-  
   if (plant %in% names(care_db)) return(care_db[[plant]])
   "I do not have a saved profile for that plant. Provide general advice based on sunlight, drainage, watering frequency, and season."
 }
@@ -168,7 +165,7 @@ care_tool <- tool(
   plant_care_lookup,
   description = "Look up basic care advice for a specific plant.",
   arguments = list(
-    plant = type_string("The plant name, such as tomato, basil, pothos, snake plant, rose, or lavender.")
+    plant = type_string("The plant name, such as tomato, basil, pothos, snake plant, rose, lavender, strawberry, blueberry, apple, fig, watermelon, grape, lettuce, spinach, pepper, cucumber, zucchini, broccoli, marigold, sunflower, zinnia, petunia, daisy, or coneflower.")
   )
 )
 
@@ -187,7 +184,9 @@ garden_theme <- bs_theme(
   primary = "#4E7A3E",
   secondary = "#A3B18A",
   success = "#588157",
-  info = "#7BAE7F"
+  info = "#7BAE7F",
+  base_font = font_google("Lora"),
+  heading_font = font_google("Playfair Display")
 )
 
 ui <- page_fillable(
@@ -196,6 +195,7 @@ ui <- page_fillable(
   padding = "1rem",
   layout_columns(
     col_widths = c(8, 4),
+    
     navset_card_tab(
       nav_panel(
         "Dashboard",
@@ -218,6 +218,7 @@ ui <- page_fillable(
           )
         )
       ),
+      
       nav_panel(
         "Interactive Map",
         layout_columns(
@@ -250,46 +251,91 @@ ui <- page_fillable(
           )
         )
       ),
+      
       nav_panel(
         "Plant Database",
-        layout_columns(
-          col_widths = c(12),
-          card(
-            card_header("Plant Database"),
-            card_body(
-              h2("Plant Database Overview"),
-              p(strong("Authors: "), "Sickandar Akhthar | Brady Heinig | Griffin Thoreson"),
-              p(strong("Assignment: "), "STAT 6395 Homework 5"),
-              
-              h4("Plants in the Database"),
-              tags$ul(
-                lapply(
-                  sort(c(
-                    "tomato", "basil", "pothos", "snake plant", "rose", "lavender",
-                    "strawberry", "blueberry", "apple", "fig", "watermelon", "grape",
-                    "lettuce", "spinach", "pepper", "cucumber", "zucchini", "broccoli",
-                    "marigold", "sunflower", "zinnia", "petunia", "daisy", "coneflower"
-                  )),
-                  tags$li
-                )
-              ),
-              
-              h4("App Functions"),
-              tags$ul(
-                tags$li("plant_care_lookup: Returns care instructions for a plant"),
-                tags$li("diagnose_plant_problem: Suggests causes of plant symptoms"),
-                tags$li("lookup_location: Returns city, coordinates, and USDA zone"),
-                tags$li("check_winter_survival: Provides climate, sunlight, and winter survival info"),
-                tags$li("calculate_spacing: Estimates plant capacity for a given area"),
-                tags$li("analyze_companions: Identifies companion planting conflicts and recommendations"),
-                tags$li("build_dashboard_insights: Generates planning, climate, and companion summaries")
+        card(
+          card_header("Plant Database"),
+          card_body(
+            h2("Plant Database Overview"),
+            h4("The following plants are included in the dictionary/database of this app"),
+            tags$ul(
+              lapply(
+                sort(c(
+                  "tomato", "basil", "pothos", "snake plant", "rose", "lavender",
+                  "strawberry", "blueberry", "apple", "fig", "watermelon", "grape",
+                  "lettuce", "spinach", "pepper", "cucumber", "zucchini", "broccoli",
+                  "marigold", "sunflower", "zinnia", "petunia", "daisy", "coneflower"
+                )),
+                tags$li
               )
+            ),
+            
+            h4("App Functions - These are the functions that are built into this app"),
+            tags$ul(
+              tags$li("plant_care_lookup: Returns care instructions for a plant"),
+              tags$li("diagnose_plant_problem: Suggests causes of plant symptoms"),
+              tags$li("lookup_location: Returns city, coordinates, and USDA zone"),
+              tags$li("check_winter_survival: Provides climate, sunlight, and winter survival info"),
+              tags$li("calculate_spacing: Estimates plant capacity for a given area"),
+              tags$li("analyze_companions: Identifies companion planting conflicts and recommendations"),
+              tags$li("build_dashboard_insights: Generates planning, climate, and companion summaries")
             )
           )
         )
       ),
+      
+      nav_panel(
+        "Information about this dashboard",
+        card(
+          card_header("How the Shiny App was Designed and the LLM/RAG was setup"),
+          card_body(
+            h3("Credits"),
+            p(("Authors: "), "Sickandar Akhthar | Brady Heinig | Griffin Thoreson"),
+            p("STAT 6395 - Homework 5"),
+            h3("Design Prompt used with Shiny Assistant"),
+            h5("The following prompts were used to generate the Shiny Dashboard app (or shell)."),
+            p("I need to build a dashboard with an integrated chatbot."),
+            p("There will also be 3 tabs at the top."),
+            p("For the first tab, There will be 3 panels. 1 large one at the top, and 2 panels at the bottom, divided in space equally."),
+            p("The integrated chatbot will be on the right side."),
+            p("The theme should be green, and the font should be something appropriate for plants."),
+            p("The background color needs to be light green"),
+            h3("Gardening Assistant System Prompt"),
+            p("This code sets up the chatbot by connecting to the Claude Haiku model."),
+            p("It also limits the response length and defines a system prompt that tells the assistant how to behave, including keeping answers short and using the app’s tools when needed."),
+            tags$pre(
+              "You are an experienced gardener helping home gardeners and beginners.
+Keep answers under 120 words and be extremely brief.
+If the user provides a ZIP code or city, use the lookup_location tool.
+If the user asks what can grow in their area, what zone they are in, or anything location-specific, use the lookup_location tool first.
+If a user asks for ideal temperature or sunlight for a plant, use the check_winter_survival tool.
+If a user asks about winter survival, frost, or surviving outdoors and has not provided a location:
+DO NOT answer yet.
+FIRST ask: 'What ZIP code or city are you growing this in?'
+If a winter-survival question includes a location, use the lookup_location tool and the check_winter_survival tool.
+Use the plant_care_lookup tool when the user asks about a specific plant.
+Use the diagnose_plant_problem tool when the user describes symptoms.
+Use the companion_tool when a user asks what plants grow well together, asks for companion plant suggestions, or asks what companion plants to add.
+Use the spacing_tool when a user asks about square footage or how many plants will fit.
+Use the plant database. If a plant not in the database is asked, tell the user it is not in the database.
+Botany topics are allowed. Other topics are NOT allowed."
+            ),
+            
+            h3("Why These Prompts"),
+            tags$ul(
+              tags$li("The theme prompt was used to create a cleaner plant-themed visual style."),
+              tags$li("The gardening system prompt keeps the assistant narrow, tool-using, and concise."),
+              tags$li("The app uses structured tool calling instead of generic chat for better reliability.")
+            )
+          )
+        )
+      )
     ),
+    
     card(
+      full_screen = TRUE,
+      height = "100%",
       card_header("Gardening Assistant"),
       chat_ui("garden_chat")
     )
@@ -425,7 +471,6 @@ server <- function(input, output, session) {
         sunlight = "Full sun",
         note = "Survives winter if drainage is excellent."
       ),
-      
       strawberry = list(
         type = "perennial",
         min_zone = 4,
@@ -468,7 +513,6 @@ server <- function(input, output, session) {
         sunlight = "Full sun",
         note = "Many grapes overwinter outdoors in temperate climates."
       ),
-      
       lettuce = list(
         type = "annual",
         min_zone = NA,
@@ -511,7 +555,6 @@ server <- function(input, output, session) {
         sunlight = "Full sun",
         note = "Broccoli prefers cool weather and usually does not persist through summer heat or hard winter."
       ),
-      
       marigold = list(
         type = "annual",
         min_zone = NA,
@@ -638,21 +681,18 @@ server <- function(input, output, session) {
       potato = 2,
       carrot = 0.25,
       onion = 0.25,
-      
       strawberry = 1,
       blueberry = 4,
       apple = 64,
       fig = 36,
       watermelon = 16,
       grape = 8,
-      
       lettuce = 0.5,
       spinach = 0.5,
       pepper = 1,
       cucumber = 2,
       zucchini = 4,
       broccoli = 2,
-      
       marigold = 1,
       sunflower = 4,
       zinnia = 1,
@@ -681,21 +721,18 @@ server <- function(input, output, session) {
       cabbage = list(good = c("potato", "celery", "dill", "onion"), bad = c("tomato", "strawberry", "beans")),
       marigold = list(good = c("tomato", "pepper", "cucumber", "squash"), bad = c()),
       onion = list(good = c("tomato", "cabbage", "carrot", "pepper"), bad = c("pea", "beans")),
-      
       strawberry = list(good = c("lettuce", "spinach", "onion"), bad = c("cabbage", "broccoli")),
       blueberry = list(good = c("marigold"), bad = c()),
       apple = list(good = c("marigold", "daisy"), bad = c()),
       fig = list(good = c("marigold"), bad = c()),
       watermelon = list(good = c("marigold", "onion"), bad = c("potato")),
       grape = list(good = c("marigold", "daisy"), bad = c()),
-      
       lettuce = list(good = c("carrot", "onion", "strawberry", "cucumber"), bad = c()),
       spinach = list(good = c("strawberry", "onion"), bad = c()),
       pepper = list(good = c("basil", "marigold", "onion"), bad = c()),
       cucumber = list(good = c("marigold", "lettuce", "onion"), bad = c("potato")),
       zucchini = list(good = c("marigold", "sunflower"), bad = c("potato")),
       broccoli = list(good = c("onion", "marigold"), bad = c("strawberry")),
-      
       sunflower = list(good = c("zucchini", "cucumber"), bad = c()),
       zinnia = list(good = c("tomato", "pepper"), bad = c()),
       petunia = list(good = c("tomato", "grape"), bad = c()),
