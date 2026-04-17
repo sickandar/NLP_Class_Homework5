@@ -54,8 +54,102 @@ plant_care_lookup <- function(plant) {
       "Lavender prefers full sun and sharply drained soil.",
       "Do not overwater.",
       "It performs best in drier conditions than many garden plants."
+    ),
+    
+    strawberry = paste(
+      "Strawberries prefer full sun and rich, well-drained soil.",
+      "Keep the soil evenly moist, especially during fruiting.",
+      "Remove runners if you want larger fruit production."
+    ),
+    blueberry = paste(
+      "Blueberries prefer full sun and acidic, well-drained soil.",
+      "Keep the soil consistently moist but not soggy.",
+      "Mulch helps retain moisture and protect shallow roots."
+    ),
+    apple = paste(
+      "Apple trees prefer full sun and well-drained soil.",
+      "Water deeply during dry periods, especially while young.",
+      "Prune annually for airflow and structure."
+    ),
+    fig = paste(
+      "Figs prefer full sun and well-drained soil.",
+      "Water regularly while establishing, then moderately after that.",
+      "Protect young plants from severe cold."
+    ),
+    watermelon = paste(
+      "Watermelons prefer full sun, warm weather, and fertile soil.",
+      "Water deeply and consistently, especially while fruits are forming.",
+      "Give vines plenty of space to spread."
+    ),
+    grape = paste(
+      "Grapes prefer full sun, good airflow, and well-drained soil.",
+      "Water regularly during establishment.",
+      "Prune heavily each year for healthy fruit production."
+    ),
+    
+    lettuce = paste(
+      "Lettuce prefers cool weather and moist, fertile soil.",
+      "Provide full sun in cool weather or partial shade in heat.",
+      "Harvest outer leaves early to extend production."
+    ),
+    spinach = paste(
+      "Spinach prefers cool weather and evenly moist soil.",
+      "Grow it in full sun to partial shade.",
+      "Hot weather can cause it to bolt quickly."
+    ),
+    pepper = paste(
+      "Peppers prefer full sun, warm soil, and steady moisture.",
+      "Do not transplant outdoors until nights are warm.",
+      "Support may help once plants are loaded with fruit."
+    ),
+    cucumber = paste(
+      "Cucumbers prefer full sun and fertile, consistently moist soil.",
+      "Water regularly to prevent bitter fruit.",
+      "Trellising improves airflow and saves space."
+    ),
+    zucchini = paste(
+      "Zucchini prefers full sun, rich soil, and regular watering.",
+      "Harvest fruits while small for best quality.",
+      "Watch for powdery mildew and squash vine borers."
+    ),
+    broccoli = paste(
+      "Broccoli prefers cool weather and fertile, moist soil.",
+      "Grow it in full sun.",
+      "Consistent watering helps prevent stress and poor heads."
+    ),
+    
+    marigold = paste(
+      "Marigolds prefer full sun and well-drained soil.",
+      "They are fairly drought tolerant once established.",
+      "Deadheading helps keep flowers blooming."
+    ),
+    sunflower = paste(
+      "Sunflowers prefer full sun and well-drained soil.",
+      "Water regularly while young, then more deeply and less often.",
+      "Tall types may need staking in windy spots."
+    ),
+    zinnia = paste(
+      "Zinnias prefer full sun and good airflow.",
+      "Water at the base and avoid wetting leaves if possible.",
+      "Deadhead spent blooms to encourage more flowers."
+    ),
+    petunia = paste(
+      "Petunias prefer full sun and well-drained soil.",
+      "Water when the soil begins to dry, but avoid soggy roots.",
+      "Regular deadheading keeps plants flowering longer."
+    ),
+    daisy = paste(
+      "Daisies prefer full sun to light shade and well-drained soil.",
+      "Water moderately and avoid overwatering.",
+      "Remove faded blooms to encourage repeat flowering."
+    ),
+    coneflower = paste(
+      "Coneflowers prefer full sun and well-drained soil.",
+      "They are drought tolerant once established.",
+      "Leave seed heads late in the season for birds if desired."
     )
   )
+  
   
   if (plant %in% names(care_db)) return(care_db[[plant]])
   "I do not have a saved profile for that plant. Provide general advice based on sunlight, drainage, watering frequency, and season."
@@ -155,7 +249,45 @@ ui <- page_fillable(
             leafletOutput("garden_map", height = "450px")
           )
         )
-      )
+      ),
+      nav_panel(
+        "Plant Database",
+        layout_columns(
+          col_widths = c(12),
+          card(
+            card_header("Plant Database"),
+            card_body(
+              h2("Plant Database Overview"),
+              p(strong("Authors: "), "Sickandar Akhthar | Brady Heinig | Griffin Thoreson"),
+              p(strong("Assignment: "), "STAT 6395 Homework 5"),
+              
+              h4("Plants in the Database"),
+              tags$ul(
+                lapply(
+                  sort(c(
+                    "tomato", "basil", "pothos", "snake plant", "rose", "lavender",
+                    "strawberry", "blueberry", "apple", "fig", "watermelon", "grape",
+                    "lettuce", "spinach", "pepper", "cucumber", "zucchini", "broccoli",
+                    "marigold", "sunflower", "zinnia", "petunia", "daisy", "coneflower"
+                  )),
+                  tags$li
+                )
+              ),
+              
+              h4("App Functions"),
+              tags$ul(
+                tags$li("plant_care_lookup: Returns care instructions for a plant"),
+                tags$li("diagnose_plant_problem: Suggests causes of plant symptoms"),
+                tags$li("lookup_location: Returns city, coordinates, and USDA zone"),
+                tags$li("check_winter_survival: Provides climate, sunlight, and winter survival info"),
+                tags$li("calculate_spacing: Estimates plant capacity for a given area"),
+                tags$li("analyze_companions: Identifies companion planting conflicts and recommendations"),
+                tags$li("build_dashboard_insights: Generates planning, climate, and companion summaries")
+              )
+            )
+          )
+        )
+      ),
     ),
     card(
       card_header("Gardening Assistant"),
@@ -292,6 +424,135 @@ server <- function(input, output, session) {
         ideal_temp = "60 to 80 F",
         sunlight = "Full sun",
         note = "Survives winter if drainage is excellent."
+      ),
+      
+      strawberry = list(
+        type = "perennial",
+        min_zone = 4,
+        ideal_temp = "60 to 80 F",
+        sunlight = "Full sun",
+        note = "Many strawberries overwinter well with mulch protection."
+      ),
+      blueberry = list(
+        type = "perennial",
+        min_zone = 3,
+        ideal_temp = "60 to 80 F",
+        sunlight = "Full sun",
+        note = "Blueberries are cold hardy in many U.S. climates."
+      ),
+      apple = list(
+        type = "perennial",
+        min_zone = 3,
+        ideal_temp = "60 to 75 F",
+        sunlight = "Full sun",
+        note = "Apple trees usually overwinter well in cold climates."
+      ),
+      fig = list(
+        type = "perennial",
+        min_zone = 7,
+        ideal_temp = "65 to 85 F",
+        sunlight = "Full sun",
+        note = "Figs may need winter protection in colder zones."
+      ),
+      watermelon = list(
+        type = "annual",
+        min_zone = NA,
+        ideal_temp = "70 to 95 F",
+        sunlight = "Full sun",
+        note = "Watermelons do not survive frost."
+      ),
+      grape = list(
+        type = "perennial",
+        min_zone = 4,
+        ideal_temp = "65 to 85 F",
+        sunlight = "Full sun",
+        note = "Many grapes overwinter outdoors in temperate climates."
+      ),
+      
+      lettuce = list(
+        type = "annual",
+        min_zone = NA,
+        ideal_temp = "45 to 75 F",
+        sunlight = "Full sun to partial shade",
+        note = "Lettuce prefers cool weather and usually declines in heat."
+      ),
+      spinach = list(
+        type = "annual",
+        min_zone = NA,
+        ideal_temp = "45 to 70 F",
+        sunlight = "Full sun to partial shade",
+        note = "Spinach is frost tolerant but usually not grown through hot weather."
+      ),
+      pepper = list(
+        type = "annual",
+        min_zone = NA,
+        ideal_temp = "70 to 85 F",
+        sunlight = "Full sun",
+        note = "Peppers are damaged by frost and do not survive winter outdoors."
+      ),
+      cucumber = list(
+        type = "annual",
+        min_zone = NA,
+        ideal_temp = "70 to 90 F",
+        sunlight = "Full sun",
+        note = "Cucumbers do not survive frost."
+      ),
+      zucchini = list(
+        type = "annual",
+        min_zone = NA,
+        ideal_temp = "65 to 85 F",
+        sunlight = "Full sun",
+        note = "Zucchini is a warm-season plant and dies after frost."
+      ),
+      broccoli = list(
+        type = "annual",
+        min_zone = NA,
+        ideal_temp = "55 to 75 F",
+        sunlight = "Full sun",
+        note = "Broccoli prefers cool weather and usually does not persist through summer heat or hard winter."
+      ),
+      
+      marigold = list(
+        type = "annual",
+        min_zone = NA,
+        ideal_temp = "60 to 85 F",
+        sunlight = "Full sun",
+        note = "Marigolds are frost sensitive."
+      ),
+      sunflower = list(
+        type = "annual",
+        min_zone = NA,
+        ideal_temp = "65 to 85 F",
+        sunlight = "Full sun",
+        note = "Sunflowers are warm-season annuals and do not survive frost."
+      ),
+      zinnia = list(
+        type = "annual",
+        min_zone = NA,
+        ideal_temp = "65 to 85 F",
+        sunlight = "Full sun",
+        note = "Zinnias are frost sensitive and grown as annuals."
+      ),
+      petunia = list(
+        type = "annual",
+        min_zone = NA,
+        ideal_temp = "60 to 80 F",
+        sunlight = "Full sun",
+        note = "Petunias are usually grown as annuals and are damaged by frost."
+      ),
+      daisy = list(
+        type = "perennial",
+        min_zone = 4,
+        ideal_temp = "55 to 75 F",
+        sunlight = "Full sun to partial shade",
+        note = "Many daisies overwinter well in temperate climates."
+      ),
+      coneflower = list(
+        type = "perennial",
+        min_zone = 3,
+        ideal_temp = "60 to 80 F",
+        sunlight = "Full sun",
+        note = "Coneflowers are hardy perennials in much of the U.S."
       )
     )
     
@@ -376,7 +637,28 @@ server <- function(input, output, session) {
       cabbage = 2,
       potato = 2,
       carrot = 0.25,
-      onion = 0.25
+      onion = 0.25,
+      
+      strawberry = 1,
+      blueberry = 4,
+      apple = 64,
+      fig = 36,
+      watermelon = 16,
+      grape = 8,
+      
+      lettuce = 0.5,
+      spinach = 0.5,
+      pepper = 1,
+      cucumber = 2,
+      zucchini = 4,
+      broccoli = 2,
+      
+      marigold = 1,
+      sunflower = 4,
+      zinnia = 1,
+      petunia = 1,
+      daisy = 1,
+      coneflower = 1
     )
     
     if (!(plant %in% names(spacing_db))) return("I do not have exact spacing data. Provide a general estimate.")
@@ -398,7 +680,27 @@ server <- function(input, output, session) {
       carrot = list(good = c("tomato", "lettuce", "radish", "onion"), bad = c("dill", "parsnip")),
       cabbage = list(good = c("potato", "celery", "dill", "onion"), bad = c("tomato", "strawberry", "beans")),
       marigold = list(good = c("tomato", "pepper", "cucumber", "squash"), bad = c()),
-      onion = list(good = c("tomato", "cabbage", "carrot", "pepper"), bad = c("pea", "beans"))
+      onion = list(good = c("tomato", "cabbage", "carrot", "pepper"), bad = c("pea", "beans")),
+      
+      strawberry = list(good = c("lettuce", "spinach", "onion"), bad = c("cabbage", "broccoli")),
+      blueberry = list(good = c("marigold"), bad = c()),
+      apple = list(good = c("marigold", "daisy"), bad = c()),
+      fig = list(good = c("marigold"), bad = c()),
+      watermelon = list(good = c("marigold", "onion"), bad = c("potato")),
+      grape = list(good = c("marigold", "daisy"), bad = c()),
+      
+      lettuce = list(good = c("carrot", "onion", "strawberry", "cucumber"), bad = c()),
+      spinach = list(good = c("strawberry", "onion"), bad = c()),
+      pepper = list(good = c("basil", "marigold", "onion"), bad = c()),
+      cucumber = list(good = c("marigold", "lettuce", "onion"), bad = c("potato")),
+      zucchini = list(good = c("marigold", "sunflower"), bad = c("potato")),
+      broccoli = list(good = c("onion", "marigold"), bad = c("strawberry")),
+      
+      sunflower = list(good = c("zucchini", "cucumber"), bad = c()),
+      zinnia = list(good = c("tomato", "pepper"), bad = c()),
+      petunia = list(good = c("tomato", "grape"), bad = c()),
+      daisy = list(good = c("apple", "grape"), bad = c()),
+      coneflower = list(good = c("marigold"), bad = c())
     )
     
     plants <- tolower(trimws(unlist(plant_list)))
